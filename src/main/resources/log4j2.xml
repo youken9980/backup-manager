@@ -9,7 +9,8 @@
         <!--设置日志文件存储路径为${env:CATALINA_HOME}/logs/${APP_NAME}-->
         <Property name="LOG_FILE_PATH">logs/${APP_NAME}</Property>
         <!--设置日志输出格式-->
-        <Property name="PATTERN_FORMAT">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %C{36}.%M %L - %msg%xEx%n</Property>
+<!--        <Property name="PATTERN_FORMAT">%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %C{36} %L %M - %msg%xEx%n</Property>-->
+        <Property name="PATTERN_FORMAT">%d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%xEx%n</Property>
     </Properties>
 
     <!--配置输出源-->
