@@ -11,6 +11,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -108,6 +109,9 @@ public class RedisConfig {
 	public RedisTemplate<Serializable, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
 		RedisTemplate<Serializable, Object> template = new RedisTemplate<>();
 		template.setConnectionFactory(lettuceConnectionFactory);
+		// 把默认的序列化器改成StringRedisSerializer
+		// 设置redisTemplate实例的序列化方式，不然在用命令行查看redis时，会在前缀出现乱码
+		template.setDefaultSerializer(new StringRedisSerializer());
 		return template;
 	}
 

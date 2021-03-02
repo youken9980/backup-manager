@@ -63,6 +63,7 @@
     <Loggers>
         <!--过滤掉spring的一些无用的DEBUG信息-->
         <logger name="org.springframework" level="INFO"/>
+        <logger name="io.lettuce" level="INFO"/>
         <!-- 配置日志的根节点 -->
         <!-- level="ALL" 只能够输出level级别是all及all以上的-->
         <root level="DEBUG">
