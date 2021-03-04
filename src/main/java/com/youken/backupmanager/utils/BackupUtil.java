@@ -28,6 +28,7 @@ public class BackupUtil {
 	static {
 		EXCLUDES = new ArrayList<>();
 		EXCLUDES.add(".DS_Store");
+		EXCLUDES.add("._.DS_Store");
 		FILE_FILTER = new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
