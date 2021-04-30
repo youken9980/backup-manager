@@ -24,7 +24,7 @@ public class MessageDigestUtil {
 		try {
 			messageDigest = MessageDigest.getInstance(ALGORITHM);
 		} catch (NoSuchAlgorithmException e) {
-			log.error(e.getMessage(), e);
+			e.printStackTrace();
 		}
 	}
 
