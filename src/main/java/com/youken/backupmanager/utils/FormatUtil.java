@@ -28,7 +28,12 @@ public class FormatUtil {
 	}
 
 	public static String concatWithFileSeparator(@NonNull final String filePath, @NonNull final String subFilePath) {
-		return (filePath.endsWith(File.separator) ? filePath.concat(subFilePath) : filePath.concat(File.separator)).concat(subFilePath);
+		StringBuilder stb = new StringBuilder(filePath);
+		if (!filePath.endsWith(File.separator)) {
+			stb.append(File.separator);
+		}
+		stb.append(subFilePath);
+		return stb.toString();
 	}
 
 	public static String formatSize(long size) {

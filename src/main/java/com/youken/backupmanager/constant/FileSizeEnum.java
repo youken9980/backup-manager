@@ -18,8 +18,8 @@ public enum FileSizeEnum {
 	TB("TB", 1024 * GB.value),
 	;
 
-	private String key;
-	private long value;
+	private final String key;
+	private final long value;
 
 	FileSizeEnum(String key, long value) {
 		this.key = key;

@@ -1,10 +1,12 @@
 package com.youken.backupmanager.utils;
 
-import com.youken.backupmanager.model.TwoTuple;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.crypto.SecureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.util.Pair;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -37,28 +39,28 @@ public class BackupUtil {
 		};
 	}
 
-	private boolean writable;
-	private boolean useMd5;
-	private AtomicLong fileSize;
-	private FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+	private final FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 			fileSize.getAndAdd(file.toFile().length());
 			return super.visitFile(file, attrs);
 		}
 	};
+	private final boolean writable;
+	private final boolean useMd5;
+	private AtomicLong fileSize;
 
 	public BackupUtil(boolean writable, boolean useMd5) {
 		this.writable = writable;
 		this.useMd5 = useMd5;
 	}
 
-	public void backup(String srcRootPath, String destRootPath, String... subDirs) throws IOException {
+	public void backup(String srcRootPath, String destRootPath, String... subDirs) throws FileNotFoundException {
 		long startTime = System.currentTimeMillis();
 		try {
-			List<TwoTuple<String, String>> rootPathTuple = assembleRootPathTuple(srcRootPath, destRootPath, subDirs);
-			for (TwoTuple<String, String> tuple : rootPathTuple) {
-				sync(tuple.getA(), tuple.getB());
+			List<Pair<String, String>> rootPathPair = assembleRootPathPair(srcRootPath, destRootPath, subDirs);
+			for (Pair<String, String> pair : rootPathPair) {
+				sync(pair.getFirst(), pair.getSecond());
 			}
 		} finally {
 			long endTime = System.currentTimeMillis();
@@ -66,35 +68,33 @@ public class BackupUtil {
 		}
 	}
 
-	private List<TwoTuple<String, String>> assembleRootPathTuple(String srcRootPath, String destRootPath, String... subDirs) throws IOException {
-		List<TwoTuple<String, String>> rootPathTuple;
+	private List<Pair<String, String>> assembleRootPathPair(String srcRootPath, String destRootPath, String... subDirs) throws FileNotFoundException {
 		srcRootPath = StringUtils.trimToNull(srcRootPath);
-		if (srcRootPath == null || BooleanUtils.isFalse(new File(srcRootPath).exists())) {
-			throw new IOException("源目录为空或不存在");
+		if (!FileUtil.exist(srcRootPath)) {
+			throw new FileNotFoundException("源目录不存在。");
 		}
 		destRootPath = StringUtils.trimToNull(destRootPath);
-		if (destRootPath == null || BooleanUtils.isFalse(new File(destRootPath).exists())) {
-			throw new IOException("目标目录为空或不存在");
+		if (!FileUtil.exist(destRootPath)) {
+			throw new FileNotFoundException("目标目录不存在。");
 		}
+
+		List<Pair<String, String>> rootPathPair;
 		if (subDirs == null || subDirs.length < 1) {
-			rootPathTuple = new ArrayList<>(1);
-			rootPathTuple.add(TwoTuple.<String, String>builder().a(srcRootPath).b(destRootPath).build());
+			rootPathPair = new ArrayList<>(1);
+			rootPathPair.add(Pair.of(srcRootPath, destRootPath));
 		} else {
-			rootPathTuple = new ArrayList<>(subDirs.length);
+			rootPathPair = new ArrayList<>(subDirs.length);
 			for (String str : subDirs) {
 				String subDirPath = StringUtils.trimToEmpty(str);
 				String srcSubDirPath = FormatUtil.concatWithFileSeparator(srcRootPath, subDirPath);
 				String destSubDirPath = FormatUtil.concatWithFileSeparator(destRootPath, subDirPath);
 				if (BooleanUtils.isFalse(new File(srcSubDirPath).exists())) {
-					throw new FileNotFoundException("源目录不存在");
+					throw new FileNotFoundException("源目录不存在。");
 				}
-				rootPathTuple.add(TwoTuple.<String, String>builder()
-						.a(srcSubDirPath)
-						.b(destSubDirPath)
-						.build());
+				rootPathPair.add(Pair.of(srcSubDirPath, destSubDirPath));
 			}
 		}
-		return rootPathTuple;
+		return rootPathPair;
 	}
 
 	/**
@@ -181,8 +181,8 @@ public class BackupUtil {
 	 */
 	private boolean equals(File src, File dest) {
 		if (useMd5) {
-			String srcMd5 = MessageDigestUtil.md5(src.getAbsolutePath());
-			String destMd5 = MessageDigestUtil.md5(dest.getAbsolutePath());
+			String srcMd5 = SecureUtil.md5(src);
+			String destMd5 = SecureUtil.md5(dest);
 			return Objects.equals(srcMd5, destMd5);
 		} else {
 			return src.getName().equals(dest.getName())
@@ -193,11 +193,10 @@ public class BackupUtil {
 
 	private Map<String, File> mappingSubFileList(File file, FileFilter filter) {
 		Map<String, File> map = new LinkedHashMap<>();
-		File[] files = file.listFiles(filter);
-		if (files != null && files.length > 0) {
-			for (File f : files) {
-				map.put(f.getName(), f);
-			}
+		List<File> fileList = Optional.ofNullable(file.listFiles(filter)).map(Arrays::asList).orElse(Collections.emptyList());
+		fileList.sort(Comparator.comparing(File::getAbsolutePath));
+		for (File f : fileList) {
+			map.put(f.getName(), f);
 		}
 		return map;
 	}
