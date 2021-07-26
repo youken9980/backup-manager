@@ -25,7 +25,7 @@ class BackupUtilTest extends BackupManagerApplicationTests {
 		boolean writable = true;
 		boolean useMd5 = false;
 		String srcRootPath = "/Users/youken/Destiny";
-		String destRootPath = "/Volumes/LACIE/Destiny";
+		String destRootPath = "/Volumes/2T/Destiny";
 		String[] subDirs = {""};
 		new BackupUtil(writable, useMd5).backup(srcRootPath, destRootPath, subDirs);
 	}
