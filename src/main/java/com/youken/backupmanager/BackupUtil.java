@@ -127,7 +127,7 @@ public class BackupUtil {
             FormatUtil.print("cp", srcFile);
             try {
                 FileUtils.copyFile(srcFile, destFile);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         } else if (FileUtil.isDirectory(srcFile)) {
@@ -138,7 +138,7 @@ public class BackupUtil {
                 FormatUtil.print("cp", srcFile);
                 try {
                     FileUtils.copyDirectory(srcFile, destFile, FILE_FILTER);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
             } else if (FileUtil.isSymlink(destFile) || FileUtil.isFile(destFile)) {
@@ -150,7 +150,7 @@ public class BackupUtil {
                 FormatUtil.print("cp", srcFile);
                 try {
                     FileUtils.copyDirectory(srcFile, destFile, FILE_FILTER);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
             } else if (FileUtil.isDirectory(destFile)) {
