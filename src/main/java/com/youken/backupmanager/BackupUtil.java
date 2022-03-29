@@ -137,6 +137,7 @@ public class BackupUtil {
             if (!FileUtil.exist(destFile)) {
                 // 目标不存在
                 FileUtil.mkdir(destFile);
+                FormatUtil.print("cp", srcFile);
             } else if (FileUtil.isDirectory(destFile)) {
                 // 目标是目录
             } else {
@@ -145,11 +146,10 @@ public class BackupUtil {
                 FormatUtil.print("rm", destFile);
                 FileUtil.del(destFile);
                 FileUtil.mkdir(destFile);
+                FormatUtil.print("cp", srcFile);
             }
-            // 复制源
-            FormatUtil.print("cp", srcFile);
             try {
-//                FileUtils.copyDirectory(srcFile, destFile, FILE_FILTER);
+                // 复制源
                 // 删除目标目录存在但源目录不存在的子目录或文件
                 Map<String, File> srcSubFileMap = mappingSubFileList(srcFile, FILE_FILTER);
                 Map<String, File> destSubFileMap = mappingSubFileList(destFile, null);
