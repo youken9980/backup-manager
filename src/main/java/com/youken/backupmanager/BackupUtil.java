@@ -4,18 +4,16 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 /**
@@ -24,6 +22,8 @@ import java.util.*;
  */
 @Slf4j
 public class BackupUtil {
+
+    private static final StandardCopyOption[] COPY_OPTIONS = new StandardCopyOption[]{StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING};
 
     /**
      * 忽略文件列表
@@ -78,13 +78,13 @@ public class BackupUtil {
         } else {
             rootPathPair = new ArrayList<>(subDirs.length);
             for (String str : subDirs) {
-                String subDirPath = StringUtils.trimToNull(str);
+                String subDirPath = StrUtil.trimToNull(str);
                 if (subDirPath == null) {
                     continue;
                 }
                 String srcSubDirPath = FormatUtil.concatWithFileSeparator(srcRootPath, subDirPath);
                 String destSubDirPath = FormatUtil.concatWithFileSeparator(destRootPath, subDirPath);
-                if (BooleanUtils.isFalse(new File(srcSubDirPath).exists())) {
+                if (BooleanUtil.isFalse(new File(srcSubDirPath).exists())) {
                     throw new FileNotFoundException("源目录不存在。");
                 }
                 rootPathPair.add(Pair.of(srcSubDirPath, destSubDirPath));
@@ -112,21 +112,23 @@ public class BackupUtil {
             // 源是文件
             if (!FileUtil.exist(destFile)) {
                 // 目标不存在
-            } else if (FileUtil.isSymlink(destFile) || FileUtil.isDirectory(destFile)) {
-                // 目标是符号链接或目录
-                // 删除目标
-                FormatUtil.print("rm", destFile);
-                FileUtil.del(destFile);
             } else if (FileUtil.isFile(destFile)) {
                 // 目标是文件
                 if (equals(srcFile, destFile)) {
+                    // 源与目标相同，跳过
                     return;
                 }
+            } else {
+                // 目标不是文件
+                // 删除目标
+                FormatUtil.print("rm", destFile);
+                FileUtil.del(destFile);
             }
             // 复制源
             FormatUtil.print("cp", srcFile);
             try {
-                FileUtils.copyFile(srcFile, destFile);
+                FileUtil.copyFile(srcFile, destFile, COPY_OPTIONS);
+                destFile.setLastModified(srcFile.lastModified());
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
@@ -134,27 +136,20 @@ public class BackupUtil {
             // 源是目录
             if (!FileUtil.exist(destFile)) {
                 // 目标不存在
-                // 复制源
-                FormatUtil.print("cp", srcFile);
-                try {
-                    FileUtils.copyDirectory(srcFile, destFile, FILE_FILTER);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-            } else if (FileUtil.isSymlink(destFile) || FileUtil.isFile(destFile)) {
-                // 目标是符号链接或文件
+                FileUtil.mkdir(destFile);
+            } else if (FileUtil.isDirectory(destFile)) {
+                // 目标是目录
+            } else {
+                // 目标不是目录
                 // 删除目标
                 FormatUtil.print("rm", destFile);
                 FileUtil.del(destFile);
-                // 复制源
-                FormatUtil.print("cp", srcFile);
-                try {
-                    FileUtils.copyDirectory(srcFile, destFile, FILE_FILTER);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-            } else if (FileUtil.isDirectory(destFile)) {
-                // 目标是目录
+                FileUtil.mkdir(destFile);
+            }
+            // 复制源
+            FormatUtil.print("cp", srcFile);
+            try {
+//                FileUtils.copyDirectory(srcFile, destFile, FILE_FILTER);
                 // 删除目标目录存在但源目录不存在的子目录或文件
                 Map<String, File> srcSubFileMap = mappingSubFileList(srcFile, FILE_FILTER);
                 Map<String, File> destSubFileMap = mappingSubFileList(destFile, null);
@@ -169,6 +164,8 @@ public class BackupUtil {
                 for (File f : srcSubFileMap.values()) {
                     sync(f.getAbsolutePath(), FormatUtil.concatWithFileSeparator(destFilePath, f.getName()));
                 }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
         }
     }
