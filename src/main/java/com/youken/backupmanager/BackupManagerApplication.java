@@ -5,6 +5,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author 杨剑
@@ -26,8 +28,14 @@ public class BackupManagerApplication {
         }
         String srcRootPath = args[0];
         String destRootPath = args[1];
-        String[] subDirs = {};
-        Arrays.asList(args).subList(2, args.length).toArray(subDirs);
+        List<String> subList = Arrays.asList(args).subList(2, args.length);
+        String[] subDirs = new String[subList.size()];
+        subDirs = subList.toArray(subDirs);
+        log.info("args: {}", Arrays.asList(args));
+        log.info("args length: {}", args.length);
+        log.info("srcRootPath: {}", srcRootPath);
+        log.info("destRootPath: {}", destRootPath);
+        log.info("subDirs: {}", Arrays.asList(subDirs));
         new BackupUtil().backup(srcRootPath, destRootPath, subDirs);
     }
 }
