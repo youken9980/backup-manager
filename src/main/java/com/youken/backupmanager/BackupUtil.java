@@ -131,7 +131,8 @@ public class BackupUtil {
             FormatUtil.print("cp", srcFile);
             try {
                 FileUtil.copyFile(srcFile, destFile, COPY_OPTIONS);
-                destFile.setLastModified(srcFile.lastModified());
+                boolean setLastModified = destFile.setLastModified(srcFile.lastModified());
+                log.info("setLastModified: {}", setLastModified);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
