@@ -43,11 +43,11 @@ public class BackupUtil {
         };
     }
 
-    private static boolean useMd5;
+    private static boolean useMD5;
 
-    @Value("${useMd5}")
-    public void setUseMd5(final boolean useMd5) {
-        BackupUtil.useMd5 = BooleanUtil.isTrue(useMd5);
+    @Value("${useMD5}")
+    public void setUseMD5(boolean useMD5) {
+        BackupUtil.useMD5 = BooleanUtil.isTrue(useMD5);
     }
 
     public void backup(@NonNull final String srcRootPath, @NonNull final String destRootPath, final String... subDirs) throws FileNotFoundException {
@@ -191,14 +191,14 @@ public class BackupUtil {
             return true;
         }
 
-        boolean isSameMd5 = true;
-        if (useMd5) {
-            String srcMd5 = SecureUtil.md5(src);
-            String destMd5 = SecureUtil.md5(dest);
-            isSameMd5 = Objects.equals(srcMd5, destMd5);
+        boolean isSameMD5 = true;
+        if (useMD5) {
+            String srcMD5 = SecureUtil.md5(src);
+            String destMD5 = SecureUtil.md5(dest);
+            isSameMD5 = Objects.equals(srcMD5, destMD5);
         }
 
-        return useMd5 && isSameMd5;
+        return useMD5 && isSameMD5;
     }
 
     private Map<String, File> mappingSubFileList(File file, FileFilter filter) {
