@@ -8,7 +8,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -21,6 +23,7 @@ import java.util.*;
  * @date 2019/12/25
  */
 @Slf4j
+@Component
 public class BackupUtil {
 
     private static final StandardCopyOption[] COPY_OPTIONS = new StandardCopyOption[]{StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING};
@@ -46,8 +49,8 @@ public class BackupUtil {
     private static boolean useMD5;
 
     @Value("${useMD5}")
-    public void setUseMD5(boolean useMD5) {
-        BackupUtil.useMD5 = BooleanUtil.isTrue(useMD5);
+    public void setUseMD5(String useMD5) {
+        BackupUtil.useMD5 = BooleanUtil.toBoolean(useMD5);
     }
 
     public void backup(@NonNull final String srcRootPath, @NonNull final String destRootPath, final String... subDirs) throws FileNotFoundException {
@@ -72,7 +75,7 @@ public class BackupUtil {
         }
 
         List<Pair<String, String>> rootPathPair;
-        if (subDirs == null || subDirs.length < 1) {
+        if (subDirs == null || subDirs.length < 1 || subDirs.length == 1 && StringUtils.trimToNull(subDirs[0]) == null) {
             rootPathPair = new ArrayList<>(1);
             rootPathPair.add(Pair.of(srcRootPath, destRootPath));
         } else {
